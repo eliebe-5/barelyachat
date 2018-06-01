@@ -9,6 +9,8 @@
 #include <pthread.h>
 #include "cb.h"
 
+#include "defines.h"
+
 #define PORTNUM 2300
 
 typedef struct
@@ -18,7 +20,7 @@ typedef struct
 	circular_buffer* cb;
 } member;
 
-member members[16];
+member members[CLIENT_COUNT];
 int mem_count = 0;
 
 struct sockaddr_in dest;
@@ -73,7 +75,7 @@ int main(int argc, char** argv)
 
 	bind(mysocket, (struct sockaddr *)&serv, sizeof(struct sockaddr));
 
-	listen(mysocket, 16);
+	listen(mysocket, CLIENT_COUNT);
 
 	pthread_t thread_id;
 	pthread_create(&thread_id, NULL, listen_for_new, NULL);
@@ -82,12 +84,13 @@ int main(int argc, char** argv)
 	{
 		for(int i = 0; i < mem_count; i++)
 		{
-			byte out;
-			if(read_buffer(members[i].cb, &out) == OK_SIGNAL)
+			byte out[2];
+			out[0] = i;
+			if(read_buffer(members[i].cb, &(out[1])) == OK_SIGNAL)
 			{
 				for(int j = 0; j < mem_count; j++)
 				{
-					send(members[j].consocket, &out, 1, 0);
+					send(members[j].consocket, &out[0], 2, 0);
 				}
 			}
 		}
