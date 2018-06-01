@@ -90,15 +90,19 @@ int main(int argc, char** argv)
 
 	while(true)
 	{
-		for(int i = 0; i < mem_count; i++)
+		for(int i = 0; i < CLIENT_COUNT; i++)
 		{
-			byte out[2];
-			out[0] = i;
-			if(read_buffer(members[i].cb, &(out[1])) == OK_SIGNAL)
+			if(!free_slots[i])
 			{
-				for(int j = 0; j < mem_count; j++)
+				byte out[2];
+				out[0] = i;
+				if(read_buffer(members[i].cb, &(out[1])) == OK_SIGNAL)
 				{
-					send(members[j].consocket, &out[0], 2, 0);
+					for(int j = 0; j < CLIENT_COUNT; j++)
+					{
+						if(!free_slots[j])
+							send(members[j].consocket, &out[0], 2, 0);
+					}
 				}
 			}
 		}
