@@ -21,7 +21,7 @@ typedef struct
 } member;
 
 member members[CLIENT_COUNT];
-int mem_count = 0;
+bool free_slots[CLIENT_COUNT];
 
 struct sockaddr_in dest;
 struct sockaddr_in serv;
@@ -31,13 +31,16 @@ socklen_t socksize = sizeof(struct sockaddr_in);
 void *listen_for_new(void *vargp)
 {
 	printf("Waiting for connection\n");
-	int id = mem_count;
+	int id = 0;
+
+	while(!free_slots[id])
+		id++;
+
 	int con = accept(mysocket, (struct sockaddr *)&dest, &socksize);
 	printf("Recieved connection, id: %d\n", id);
 	members[id].consocket = con;
 	members[id].cb = (circular_buffer*)malloc(sizeof(circular_buffer));
 	init_circular_buffer(512, members[id].cb);
-	mem_count++;
 	
 	pthread_t thread_id;
 	pthread_create(&thread_id, NULL, listen_for_new, NULL);
@@ -51,6 +54,8 @@ void *listen_for_new(void *vargp)
 			if(out == 27)
 			{
 				close(members[id].consocket);
+				destroy_circular_buffer(members[id].cb);
+				free_slots[id] = true;
 				break;
 			}
 			else
@@ -61,7 +66,10 @@ void *listen_for_new(void *vargp)
 
 int main(int argc, char** argv)
 {
-	char* msg = "Hello, world!\n";
+	for(int i = 0; i < CLIENT_COUNT; i++)
+	{
+		free_slots[i] = true;
+	}
 
 	memset(&serv, 0, sizeof(serv));
 
