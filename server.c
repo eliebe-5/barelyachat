@@ -37,6 +37,7 @@ void *listen_for_new(void *vargp)
 		id++;
 
 	int con = accept(mysocket, (struct sockaddr *)&dest, &socksize);
+	free_slots[id] = false;
 	printf("Recieved connection, id: %d\n", id);
 	members[id].consocket = con;
 	members[id].cb = (circular_buffer*)malloc(sizeof(circular_buffer));
