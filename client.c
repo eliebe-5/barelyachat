@@ -59,6 +59,8 @@ void *recieve_and_print(void *vargp)
 
 int main(int argc, char** argv)
 {
+	if(argc < 2)
+		return printf("Enter ip as command arg.");
 	initscr();
 
 	mysocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -71,8 +73,8 @@ int main(int argc, char** argv)
 	}
 		
 	dest.sin_family = AF_INET;
-	//dest.sin_addr.s_addr = inet_addr("35.204.225.40");
-	dest.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	dest.sin_addr.s_addr = inet_addr(argv[1]);
+	//dest.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	dest.sin_port = htons(PORTNUM);
 
 	if(connect(mysocket, (struct sockaddr *)&dest, sizeof(struct sockaddr_in)) < 0)
